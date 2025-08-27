@@ -1,0 +1,21 @@
+{
+    "name": "dataflow-bq-http",
+    "description": "A Dataflow pipeline that reads from BigQuery, calls an HTTP endpoint, and writes to BigQuery.",
+    "parameters": [
+        {
+            "name": "input_table",
+            "label": "Input BigQuery Table",
+            "helpText": "The BigQuery table to read from."
+        },
+        {
+            "name": "output_table",
+            "label": "Output BigQuery Table",
+            "helpText": "The BigQuery table to write to."
+        },
+        {
+            "name": "http_endpoint",
+            "label": "HTTP Endpoint",
+            "helpText": "The HTTP endpoint to call."
+        }
+    ]
+}
