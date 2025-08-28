@@ -40,6 +40,9 @@ SUBNETWORK=$(terraform -chdir=terraform output -raw dataflow_subnetwork)
 # Get the GCS bucket for the dataflow template from the terraform output.
 TEMPLATE_GCS_BUCKET=$(terraform -chdir=terraform output -raw pipeline_template_bucket)
 
+# Get the custom worker image from the terraform output.
+WORKER_IMAGE=$(terraform -chdir=terraform output -raw dataflow_worker_image)
+
 # Set the job name.
 JOB_NAME="dataflow-bq-http-$(date +%Y%m%d-%H%M%S)"
 
@@ -47,9 +50,12 @@ JOB_NAME="dataflow-bq-http-$(date +%Y%m%d-%H%M%S)"
 gcloud dataflow flex-template run ${JOB_NAME} \
     --project=${PROJECT_ID} \
     --region=${REGION} \
-    --template-file-gcs-location="gs://${TEMPLATE_GCS_BUCKET}/flex/dataflow-bq-http" \
+    --template-file-gcs-location="gs://${TEMPLATE_GCS_BUCKET}/flex/dataflow-bq-http-template" \
     --parameters "input_table=${INPUT_TABLE_ID}" \
     --parameters "output_table=${OUTPUT_TABLE_ID}" \
     --parameters "http_endpoint=${HTTP_ENDPOINT}" \
+    --parameters "sdk_container_image=${WORKER_IMAGE}" \
     --service-account-email=${SERVICE_ACCOUNT_EMAIL} \
-    --subnetwork=${SUBNETWORK}
+    --subnetwork=${SUBNETWORK} \
+    --staging-location="gs://${TEMPLATE_GCS_BUCKET}/staging" \
+    --worker-machine-type=n2d-standard-4

@@ -15,25 +15,12 @@
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.transforms.enrichment import Enrichment
-from apache_beam.transforms.enrichment import EnrichmentHandler
-import requests
+from enrichments.http import EnrichmentData, HttpEnrichmentHandler, http_enrichment_join_fn
 
 
-class HttpEnrichmentHandler(EnrichmentHandler):
-    def __init__(self, http_endpoint):
-        self.http_endpoint = http_endpoint
+class Options(PipelineOptions):
+    """Custom pipeline options for BigQuery and HTTP endpoint configuration."""
 
-    def __call__(self, request, *args, **kwargs):
-        try:
-            with requests.post(self.http_endpoint, json=request._asdict(), stream=True) as response:
-                response.raise_for_status()
-                full_response = b"".join(response.iter_content(chunk_size=8192))
-                return request, full_response.decode('utf-8')
-        except Exception as e:
-            return request, str(e)
-
-
-class MyPipelineOptions(PipelineOptions):
     @classmethod
     def _add_argparse_args(cls, parser):
         parser.add_argument('--input_table', help='BigQuery table to read from')
@@ -42,32 +29,31 @@ class MyPipelineOptions(PipelineOptions):
 
 
 def run():
+    """Runs the Dataflow pipeline."""
     # Command line arguments
-    pipeline_options = MyPipelineOptions()
+    pipeline_options = Options()
 
     # Create the pipeline
     with beam.Pipeline(options=pipeline_options) as p:
         # Read from BigQuery
         rows = p | 'ReadFromBigQuery' >> beam.io.ReadFromBigQuery(
             table=pipeline_options.input_table,
-        )
+            method='DIRECT_READ'
+        ) | 'ConvertToBeamRow' >> beam.Map(lambda x: beam.Row(**x))
 
         # Enrich with HTTP call
         enriched_rows = rows | Enrichment(
-            HttpEnrichmentHandler(pipeline_options.http_endpoint))
+            HttpEnrichmentHandler(pipeline_options.http_endpoint),
+            join_fn=http_enrichment_join_fn
+        )
 
         # Write to BigQuery
-        enriched_rows | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
-            pipeline_options.output_table,
-            schema='id:INTEGER,data:STRING,http_response:STRING',
-            create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
-            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-            row_mapper=lambda x: {
-                'id': x.request.id,
-                'data': x.request.data,
-                'http_response': x.response
-            }
-        )
+        (enriched_rows
+            | 'ConvertToDict' >> beam.Map(lambda x: x._asdict())
+            | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
+                pipeline_options.output_table,
+                create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
 
 
 if __name__ == '__main__':

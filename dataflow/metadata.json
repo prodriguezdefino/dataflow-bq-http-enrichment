@@ -16,6 +16,11 @@
             "name": "http_endpoint",
             "label": "HTTP Endpoint",
             "helpText": "The HTTP endpoint to call."
+        },
+        {
+            "name": "sdk_container_image",
+            "label": "SDK Container Image",
+            "helpText": "The custom SDK container image to use for Dataflow workers."
         }
     ]
 }

@@ -14,12 +14,18 @@
 
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
 # This script runs the terraform commands to provision the infrastructure.
 
 # Change into the terraform directory.
 pushd terraform
 
 # Initialize the terraform configuration.
-terraform init && terraform apply
+terraform init
+
+# Apply the terraform configuration.
+terraform apply
 
 popd

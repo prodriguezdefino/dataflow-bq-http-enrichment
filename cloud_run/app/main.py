@@ -14,17 +14,33 @@
 
 import os
 import time
-from flask import Flask, Response, request
+import logging
+from flask import Flask, Response, request, jsonify
+from typing import Iterator, Dict, Any
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 @app.route("/", methods=['POST'])
-def hello_world():
-    data = request.get_json()
-    def generate():
+def hello_world() -> Response:
+    """Handles POST requests and returns a streaming response."""
+    try:
+        data: Dict[str, Any] = request.get_json()
+        if not isinstance(data, dict):
+            logging.error(f"Invalid JSON payload: {data}")
+            return jsonify({"error": "Invalid JSON payload"}), 400
+    except Exception as e:
+        logging.error(f"Error parsing JSON: {e}")
+        return jsonify({"error": "Error parsing JSON"}), 400
+
+    def generate() -> Iterator[str]:
+        """Generates a streaming response."""
         for i in range(5):
-            yield f"Hello {data.get('data', 'World')} {i}!\n"
+            message = f"Hello {data.get('data', 'World')} {i}!\n"
+            logging.info(f"Sending chunk: {message.strip()}")
+            yield message
             time.sleep(1)
+
     return Response(generate(), mimetype='text/plain')
 
 if __name__ == "__main__":

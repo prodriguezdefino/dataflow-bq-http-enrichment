@@ -13,9 +13,16 @@
 # the License.
 
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', '${_IMAGE_NAME}', '.']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', '${_IMAGE_NAME}']
+- id: 'build-launcher-image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', 'Dockerfile.template', '-t', '${_LAUNCHER_IMAGE_NAME}', '.']
+- id: 'build-worker-image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', 'Dockerfile.worker', '-t', '${_WORKER_IMAGE_NAME}', '.']
+  waitFor: ['-']
 images:
-- '${_IMAGE_NAME}'
+- '${_LAUNCHER_IMAGE_NAME}'
+- '${_WORKER_IMAGE_NAME}'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

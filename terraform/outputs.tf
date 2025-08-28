@@ -17,11 +17,11 @@ output "region" {
 }
 
 output "input_table_id" {
-  value = google_bigquery_table.input_table.id
+  value = "${google_bigquery_table.input_table.project}:${google_bigquery_table.input_table.dataset_id}.${google_bigquery_table.input_table.table_id}"
 }
 
 output "output_table_id" {
-  value = google_bigquery_table.output_table.id
+  value = "${google_bigquery_table.output_table.project}:${google_bigquery_table.output_table.dataset_id}.${google_bigquery_table.output_table.table_id}"
 }
 
 output "http_endpoint_uri" {
@@ -42,4 +42,8 @@ output "dataflow_subnetwork" {
 
 output "pipeline_template_bucket" {
   value = google_storage_bucket.dataflow_template_bucket.name
+}
+
+output "dataflow_worker_image" {
+  value = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/dataflow-bq-http-worker:latest"
 }
