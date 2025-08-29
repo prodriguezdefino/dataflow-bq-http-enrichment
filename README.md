@@ -25,15 +25,16 @@ The overall data flow is as follows:
 .
 ├── .gitignore
 ├── load_data.sh          # Script to generate and load sample data into BigQuery
+├── deploy.sh             # Script to provision infrastructure using Terraform
 ├── run_pipeline.sh       # Script to run the Dataflow pipeline
-├── run_terraform.sh      # Script to provision infrastructure using Terraform
 ├── cloud_run/
 │   ├── cloudbuild.yaml   # Cloud Build configuration for Cloud Run image
 │   └── app/
 │       ├── Dockerfile    # Dockerfile for the Cloud Run application
 │       └── main.py       # Flask application for the HTTP endpoint
 ├── dataflow/
-│   ├── cloudbuild.yaml   # Unified Cloud Build configuration for Dataflow images
+│   ├── cloudbuild_template.yaml # Cloud Build configuration for Dataflow Flex Template launcher image
+│   ├── cloudbuild_worker.yaml # Cloud Build configuration for Dataflow custom worker container
 │   ├── Dockerfile.template # Dockerfile for the Dataflow Flex Template launcher image (includes Java 17 JRE)
 │   ├── Dockerfile.worker # Dockerfile for the Dataflow custom worker container
 │   ├── metadata.json     # Metadata for the Dataflow Flex Template
@@ -43,7 +44,7 @@ The overall data flow is as follows:
 │   └── enrichments/      # Python package containing custom enrichment logic
 │       ├── __init__.py
 │       └── http.py       # HTTP enrichment handler and join function
-└── terraform/
+└── infra/
     ├── bigquery.tf       # BigQuery dataset and table definitions
     ├── cloudrun.tf       # Cloud Run service definition and deployment
     ├── dataflow.tf       # Dataflow Flex Template and custom worker image build/deployment
@@ -57,6 +58,22 @@ The overall data flow is as follows:
 
 ## Setup and Deployment
 
+### 0. Configure Terraform Variables
+
+Before deploying, you need to configure your Terraform variables. A `terraform.tfvars.example` file is provided in the `infra/` directory. Copy this file to `infra/terraform.tfvars` and fill in your Google Cloud project ID and desired region.
+
+```bash
+cp infra/terraform.tfvars.example infra/terraform.tfvars
+# Edit infra/terraform.tfvars with your project_id and region
+```
+
+Example `infra/terraform.tfvars` content:
+
+```terraform
+project_id = "your-gcp-project-id"
+region     = "us-central1" # or your preferred region
+```
+
 ### Prerequisites
 
 *   [Google Cloud SDK (gcloud CLI)](https://cloud.google.com/sdk/docs/install) installed and configured.
@@ -68,16 +85,16 @@ The overall data flow is as follows:
 Ensure your `gcloud` CLI is authenticated and configured for your project:
 
 ```bash
-gcloud auth login
+gcloud auth auth-application-default
 gcloud config set project YOUR_PROJECT_ID
 ```
 
-### 2. Deploy Infrastructure with Terraform
+### 2. Deploy Infrastructure
 
-Navigate to the root of the project and run the Terraform deployment script. This will provision all necessary GCP resources, including BigQuery tables, Cloud Run service, and Dataflow resources, and build/push the Docker images.
+Navigate to the root of the project and run the deployment script. This will provision all necessary GCP resources, including BigQuery tables, Cloud Run service, and Dataflow resources, and build/push the Docker images.
 
 ```bash
-./run_terraform.sh
+./deploy.sh
 ```
 
 Follow the prompts to confirm the Terraform apply.
@@ -112,7 +129,70 @@ You can monitor the Dataflow job in the Google Cloud Console.
 To destroy the deployed Google Cloud resources, run the following script:
 
 ```bash
-./destroy_terraform.sh
+./cleanup.sh
+```
+
+Follow the prompts to confirm the destruction of resources.
+```
+
+## Setup and Deployment
+
+### Prerequisites
+
+*   [Google Cloud SDK (gcloud CLI)](https://cloud.google.com/sdk/docs/install) installed and configured.
+*   [Terraform](https://www.terraform.io/downloads.html) installed.
+*   A Google Cloud Project with billing enabled.
+
+### 1. Authenticate with Google Cloud
+
+Ensure your `gcloud` CLI is authenticated and configured for your project:
+
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### 2. Deploy Infrastructure
+
+Navigate to the root of the project and run the deployment script. This will provision all necessary GCP resources, including BigQuery tables, Cloud Run service, and Dataflow resources, and build/push the Docker images.
+
+```bash
+./deploy.sh
+```
+
+Follow the prompts to confirm the Terraform apply.
+
+### 3. Load Sample Data
+
+Once the BigQuery tables are provisioned, you can load sample data into the input table:
+
+```bash
+./load_data.sh
+```
+
+### 4. Run the Dataflow Pipeline
+
+Finally, execute the Dataflow pipeline. This will read data from the input BigQuery table, process it via the Cloud Run HTTP endpoint, and write the results to the output BigQuery table. You can configure the BigQuery write method.
+
+```bash
+./run_pipeline.sh
+```
+
+**Pipeline Parameters:**
+*   `input_table`: The BigQuery table to read from.
+*   `output_table`: The BigQuery table to write to.
+*   `http_endpoint`: The HTTP endpoint to call for enrichment.
+*   `sdk_container_image`: The custom SDK container image to use for Dataflow workers (automatically passed by `run_pipeline.sh`).
+*   `write_method`: Method to write to BigQuery. Options: `FILE_LOADS` (default) or `STORAGE_WRITE_API`.
+
+You can monitor the Dataflow job in the Google Cloud Console.
+
+## Cleaning Up
+
+To destroy the deployed Google Cloud resources, run the following script:
+
+```bash
+./cleanup.sh
 ```
 
 Follow the prompts to confirm the destruction of resources.

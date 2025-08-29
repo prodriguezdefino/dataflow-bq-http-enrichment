@@ -10,7 +10,7 @@
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations under
-# the License. 
+# the License.
 
 #!/bin/bash
 
@@ -20,10 +20,10 @@ set -e
 # This script generates some sample data and loads it into the input BigQuery table.
 
 # Get the project ID from the gcloud config.
-PROJECT_ID="$(gcloud config get-value project)"
+PROJECT_ID="$(terraform -chdir=infra output -raw project_id)"
 
 # Get the input table ID from the terraform output.
-INPUT_TABLE_ID="$(terraform -chdir=terraform output -raw input_table_id)"
+INPUT_TABLE_ID="$(terraform -chdir=infra output -raw input_table_id)"
 
 # Set the number of records to generate.
 NUM_RECORDS=1000

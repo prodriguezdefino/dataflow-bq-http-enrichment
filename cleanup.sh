@@ -6,7 +6,7 @@ set -e
 # This script runs the terraform destroy commands to tear down the infrastructure.
 
 # Change into the terraform directory.
-pushd terraform
+pushd infra
 
 # Destroy the terraform configuration.
 terraform destroy

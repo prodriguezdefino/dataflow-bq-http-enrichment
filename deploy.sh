@@ -20,7 +20,7 @@ set -e
 # This script runs the terraform commands to provision the infrastructure.
 
 # Change into the terraform directory.
-pushd terraform
+pushd infra
 
 # Initialize the terraform configuration.
 terraform init

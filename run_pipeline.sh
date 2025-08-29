@@ -17,31 +17,31 @@
 # This script requires the gcloud CLI to be installed and configured.
 
 # Get the project ID from the terraform config.
-PROJECT_ID=$(terraform -chdir=terraform output -raw project_id)
+PROJECT_ID=$(terraform -chdir=infra output -raw project_id)
 
 # Get the region from the terraform output.
-REGION=$(terraform -chdir=terraform output -raw region)
+REGION=$(terraform -chdir=infra output -raw region)
 
 # Get the input table ID from the terraform output.
-INPUT_TABLE_ID=$(terraform -chdir=terraform output -raw input_table_id)
+INPUT_TABLE_ID=$(terraform -chdir=infra output -raw input_table_id)
 
 # Get the output table ID from the terraform output.
-OUTPUT_TABLE_ID=$(terraform -chdir=terraform output -raw output_table_id)
+OUTPUT_TABLE_ID=$(terraform -chdir=infra output -raw output_table_id)
 
 # Get the HTTP endpoint URL from the terraform output.
-HTTP_ENDPOINT=$(terraform -chdir=terraform output -raw http_endpoint_uri)
+HTTP_ENDPOINT=$(terraform -chdir=infra output -raw http_endpoint_uri)
 
 # Get the service account email from the terraform output.
-SERVICE_ACCOUNT_EMAIL=$(terraform -chdir=terraform output -raw dataflow_runner_email)
+SERVICE_ACCOUNT_EMAIL=$(terraform -chdir=infra output -raw dataflow_runner_email)
 
 # Get the subnetwork from the terraform output.
-SUBNETWORK=$(terraform -chdir=terraform output -raw dataflow_subnetwork)
+SUBNETWORK=$(terraform -chdir=infra output -raw dataflow_subnetwork)
 
 # Get the GCS bucket for the dataflow template from the terraform output.
-TEMPLATE_GCS_BUCKET=$(terraform -chdir=terraform output -raw pipeline_template_bucket)
+TEMPLATE_GCS_BUCKET=$(terraform -chdir=infra output -raw pipeline_template_bucket)
 
 # Get the custom worker image from the terraform output.
-WORKER_IMAGE=$(terraform -chdir=terraform output -raw dataflow_worker_image)
+WORKER_IMAGE=$(terraform -chdir=infra output -raw dataflow_worker_image)
 
 # Set the job name.
 JOB_NAME="dataflow-bq-http-$(date +%Y%m%d-%H%M%S)"
