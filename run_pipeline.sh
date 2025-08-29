@@ -55,6 +55,7 @@ gcloud dataflow flex-template run ${JOB_NAME} \
     --parameters "output_table=${OUTPUT_TABLE_ID}" \
     --parameters "http_endpoint=${HTTP_ENDPOINT}" \
     --parameters "sdk_container_image=${WORKER_IMAGE}" \
+    --parameters "write_method"=STORAGE_WRITE_API \
     --service-account-email=${SERVICE_ACCOUNT_EMAIL} \
     --subnetwork=${SUBNETWORK} \
     --staging-location="gs://${TEMPLATE_GCS_BUCKET}/staging" \

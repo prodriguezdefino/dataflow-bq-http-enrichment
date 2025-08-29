@@ -26,6 +26,7 @@ class Options(PipelineOptions):
         parser.add_argument('--input_table', help='BigQuery table to read from')
         parser.add_argument('--output_table', help='BigQuery table to write to')
         parser.add_argument('--http_endpoint', help='HTTP endpoint to call')
+        parser.add_argument('--write_method', default='FILE_LOADS', help='BigQuery write method (FILE_LOADS or STORAGE_WRITE_API)')
 
 
 def run():
@@ -48,12 +49,22 @@ def run():
         )
 
         # Write to BigQuery
+        schema = {
+            'fields': [
+                {'name': 'id', 'type': 'INTEGER', 'mode': 'REQUIRED'},
+                {'name': 'data', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'http_response', 'type': 'STRING', 'mode': 'NULLABLE'}
+            ]}
+
         (enriched_rows
             | 'ConvertToDict' >> beam.Map(lambda x: x._asdict())
             | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
                 pipeline_options.output_table,
                 create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
-                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
+                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
+                method=pipeline_options.write_method,
+                schema=schema
+            ))
 
 
 if __name__ == '__main__':

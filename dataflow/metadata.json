@@ -21,6 +21,12 @@
             "name": "sdk_container_image",
             "label": "SDK Container Image",
             "helpText": "The custom SDK container image to use for Dataflow workers."
+        },
+        {
+            "name": "write_method",
+            "label": "BigQuery Write Method",
+            "helpText": "Method to write to BigQuery (FILE_LOADS or STORAGE_WRITE_API).",
+            "defaultValue": "FILE_LOADS"
         }
     ]
 }
