@@ -39,7 +39,6 @@ def hello_world() -> Response:
             message = f"Hello {data.get('data', 'World')} {i}!\n"
             logging.info(f"Sending chunk: {message.strip()}")
             yield message
-            time.sleep(1)
 
     return Response(generate(), mimetype='text/plain')
 
