@@ -14,8 +14,8 @@
 
 resource "null_resource" "build_and_push_cloud_run_image" {
   triggers = {
-    dockerfile = filemd5("${path.module}/../cloud_run/app/Dockerfile")
-    main_py    = filemd5("${path.module}/../cloud_run/app/main.py")
+    dockerfile      = filemd5("${path.module}/../cloud_run/app/Dockerfile")
+    main_py         = filemd5("${path.module}/../cloud_run/app/main.py")
     cloudbuild_yaml = filemd5("${path.module}/../cloud_run/cloudbuild.yaml")
   }
 
@@ -24,7 +24,7 @@ resource "null_resource" "build_and_push_cloud_run_image" {
       gcloud builds submit \
       --config "${path.module}/../cloud_run/cloudbuild.yaml" \
       --substitutions=_IMAGE_NAME=${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/dataflow-http-app:latest \
-      "${path.module}/../cloud_run/app"
+      "${path.module}/../cloud_run/app" \
       --quiet
     EOT
   }

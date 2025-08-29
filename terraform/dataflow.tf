@@ -17,29 +17,46 @@ locals {
   worker_image_name   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/dataflow-bq-http-worker:latest"
 }
 
-resource "null_resource" "build_and_push_dataflow_image" {
+resource "null_resource" "dataflow_worker_image" {
   triggers = {
-    dockerfile_worker = filemd5("${path.module}/../dataflow/Dockerfile.worker")
-    pipeline_py = filemd5("${path.module}/../dataflow/pipeline.py")
+    dockerfile_worker  = filemd5("${path.module}/../dataflow/Dockerfile.worker")
+    pipeline_py        = filemd5("${path.module}/../dataflow/pipeline.py")
     http_enrichment_py = filemd5("${path.module}/../dataflow/enrichments/http.py")
-    requirements_txt = filemd5("${path.module}/../dataflow/requirements.txt")
+    requirements_txt   = filemd5("${path.module}/../dataflow/requirements.txt")
   }
 
   provisioner "local-exec" {
     command = <<EOT
       gcloud builds submit \
-      --config "${path.module}/../dataflow/cloudbuild.yaml" \
-      --substitutions=_LAUNCHER_IMAGE_NAME=${local.launcher_image_name},_WORKER_IMAGE_NAME=${local.worker_image_name} \
+      --config "${path.module}/../dataflow/cloudbuild_worker.yaml" \
+      --substitutions=_WORKER_IMAGE_NAME=${local.worker_image_name} \
+      "${path.module}/../dataflow" \
+      --quiet
+    EOT
+  }
+}
+resource "null_resource" "dataflow_template_image" {
+  triggers = {
+    dockerfile_template = filemd5("${path.module}/../dataflow/Dockerfile.template")
+    pipeline_py         = filemd5("${path.module}/../dataflow/pipeline.py")
+    requirements_txt    = filemd5("${path.module}/../dataflow/requirements.txt")
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      gcloud builds submit \
+      --config "${path.module}/../dataflow/cloudbuild_template.yaml" \
+      --substitutions=_LAUNCHER_IMAGE_NAME=${local.launcher_image_name} \
       "${path.module}/../dataflow" \
       --quiet
     EOT
   }
 }
 
-resource "null_resource" "build_dataflow_template" {
+resource "null_resource" "create_dataflow_template" {
   triggers = {
-    dockerfile = filemd5("${path.module}/../dataflow/Dockerfile.template")
-    pipeline_py = filemd5("${path.module}/../dataflow/pipeline.py")
+    dockerfile    = filemd5("${path.module}/../dataflow/Dockerfile.template")
+    pipeline_py   = filemd5("${path.module}/../dataflow/pipeline.py")
     metadata_json = filemd5("${path.module}/../dataflow/metadata.json")
   }
 
@@ -52,5 +69,5 @@ resource "null_resource" "build_dataflow_template" {
         --subnetwork "${google_compute_subnetwork.dataflow_subnetwork.name}"
     EOT
   }
-  depends_on = [null_resource.build_and_push_dataflow_image]
+  depends_on = [null_resource.dataflow_template_image]
 }
