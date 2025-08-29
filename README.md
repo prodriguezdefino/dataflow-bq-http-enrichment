@@ -1,4 +1,4 @@
-# Dataflow BigQuery to HTTP to BigQuery Pipeline
+# BigQuery data enrichment using Dataflow
 
 This project demonstrates a data processing pipeline on Google Cloud Platform that reads data from BigQuery, enriches it by calling an HTTP endpoint, and writes the results back to BigQuery.
 
