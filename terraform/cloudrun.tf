@@ -34,6 +34,8 @@ resource "google_cloud_run_v2_service" "http_endpoint" {
   name     = "dataflow-bq-http-endpoint"
   location = var.region
 
+  deletion_protection = false
+
   template {
     # Add annotations to force a new revision when code changes
     annotations = {

@@ -20,6 +20,7 @@ resource "google_bigquery_dataset" "bq_dataset" {
 resource "google_bigquery_table" "input_table" {
   dataset_id = google_bigquery_dataset.bq_dataset.dataset_id
   table_id   = "input_table"
+  deletion_protection = false
   schema     = <<EOF
 [
   {
@@ -39,6 +40,7 @@ EOF
 resource "google_bigquery_table" "output_table" {
   dataset_id = google_bigquery_dataset.bq_dataset.dataset_id
   table_id   = "output_table"
+  deletion_protection = false
   schema     = <<EOF
 [
   {

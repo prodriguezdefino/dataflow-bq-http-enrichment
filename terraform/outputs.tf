@@ -12,6 +12,10 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
+output "project_id" {
+  value = var.project_id
+}
+
 output "region" {
   value = var.region
 }

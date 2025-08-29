@@ -16,8 +16,8 @@
 
 # This script requires the gcloud CLI to be installed and configured.
 
-# Get the project ID from the gcloud config.
-PROJECT_ID=$(gcloud config get-value project)
+# Get the project ID from the terraform config.
+PROJECT_ID=$(terraform -chdir=terraform output -raw project_id)
 
 # Get the region from the terraform output.
 REGION=$(terraform -chdir=terraform output -raw region)
